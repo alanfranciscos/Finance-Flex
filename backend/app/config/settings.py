@@ -18,6 +18,10 @@ class Settings(BaseSettings):
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = os.getenv(
         "JWT_ACCESS_TOKEN_EXPIRE_MINUTES"
     )
+    EMAIL_HOST: str = os.getenv("EMAIL_HOST")
+    EMAIL_USER: str = os.getenv("EMAIL_USER")
+    EMAIL_PASSWORD: str = os.getenv("EMAIL_PASSWORD")
+    EMAIL_PORT: int = os.getenv("EMAIL_PORT")
 
 
 def get_settings() -> Settings:
