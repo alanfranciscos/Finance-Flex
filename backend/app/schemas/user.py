@@ -11,6 +11,7 @@ class UserVerification(BaseModel):
 class Create_user(BaseModel):
     id: str
     email: str
+    name: str
     roles: List[str] = []
     password: str
     verification: UserVerification
@@ -20,6 +21,7 @@ class Create_user(BaseModel):
 
 class UserCredentials(BaseModel):
     email: str
+    name: str
     password: str
     roles: List[str] = []
     verification: UserVerification
@@ -32,5 +34,6 @@ class UserInput(BaseModel):
 
 class User(BaseModel):
     email: str
+    name: str
     roles: List[str] = []
     verificated: bool
