@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List
 
 from pydantic import BaseModel
@@ -6,6 +7,7 @@ from pydantic import BaseModel
 class UserVerification(BaseModel):
     verified: bool
     verification_code: str
+    valid_until: datetime
 
 
 class Create_user(BaseModel):
@@ -15,8 +17,8 @@ class Create_user(BaseModel):
     roles: List[str] = []
     password: str
     verification: UserVerification
-    created_at: str
-    updated_at: str
+    created_at: datetime
+    updated_at: datetime
 
 
 class UserCredentials(BaseModel):
@@ -30,6 +32,7 @@ class UserCredentials(BaseModel):
 class UserInput(BaseModel):
     email: str
     password: str
+    name: str
 
 
 class User(BaseModel):
@@ -37,3 +40,8 @@ class User(BaseModel):
     name: str
     roles: List[str] = []
     verificated: bool
+
+
+class UserAuthentication(BaseModel):
+    email: str
+    password: str

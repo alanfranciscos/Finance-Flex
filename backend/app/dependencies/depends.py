@@ -7,15 +7,15 @@ from pymongo.database import Database
 
 from backend.app.config.settings import get_settings
 from backend.app.dependencies.database import get_database
-from backend.app.repositories.authentication import AuthenticationRepository
 from backend.app.repositories.base import BaseRepository
 from backend.app.repositories.user import UserRepository
 from backend.app.schemas.user import User
-from backend.app.services.authentication import AuthenticationService
 from backend.app.services.user import UserService
 
 
-def authenticated_user(roles: List[str] = []) -> any:
+def authenticated_user(
+    roles: List[str] = [], return_token: bool = False
+) -> any:
     """Authenticate a user given a scope."""
 
     def _auth(request: Request) -> Tuple[User]:
@@ -41,17 +41,20 @@ def authenticated_user(roles: List[str] = []) -> any:
         if not email:
             raise HTTPException(status_code=401, detail="Invalid Email")
 
-        for role in roles:
-            if role not in payload.get("roles"):
-                raise HTTPException(
-                    status_code=401,
-                    detail=f"Invalid role {role}",
-                )
+        if roles:
+            for role in roles:
+                if role not in payload.get("roles"):
+                    raise HTTPException(
+                        status_code=401,
+                        detail=f"Invalid role {role}",
+                    )
 
         payload_time = datetime.utcfromtimestamp(payload.get("exp"))
         if payload_time < datetime.utcnow():
             raise HTTPException(status_code=401, detail="Token expired")
 
+        if return_token:
+            return token
         return email
 
     return _auth
@@ -62,13 +65,6 @@ def get_repository(
 ) -> Callable[[Database], BaseRepository]:
     """Get a repository as callable."""
     if repo_type == UserRepository:
-
-        def _get_repo(db: Database = Depends(get_database)) -> BaseRepository:
-            return repo_type(db)
-
-        return _get_repo
-
-    if repo_type == AuthenticationRepository:
 
         def _get_repo(db: Database = Depends(get_database)) -> BaseRepository:
             return repo_type(db)
@@ -86,20 +82,5 @@ def get_service(service_type: type[any]) -> Callable:
             ),
         ) -> UserService:
             return UserService(user_repository=user_repository)
-
-        return _service
-
-    if service_type == AuthenticationService:
-
-        def _service(
-            user_service: UserService = Depends(get_service(UserService)),
-            authentication_repository: AuthenticationRepository = Depends(
-                get_repository(AuthenticationRepository)
-            ),
-        ) -> AuthenticationService:
-            return AuthenticationService(
-                user_service=user_service,
-                authentication_repository=authentication_repository,
-            )
 
         return _service

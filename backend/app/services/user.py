@@ -1,20 +1,33 @@
 """User service"""
 import random
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 
+import bcrypt
+from fastapi import HTTPException
+from fastapi.security import OAuth2PasswordBearer
+from jose import JWTError, jwt
 from passlib.context import CryptContext
 
+from backend.app.config.settings import get_settings
 from backend.app.events.email import EmailEvent
 from backend.app.repositories.user import UserRepository
-from backend.app.schemas.user import Create_user, User, UserInput
+from backend.app.schemas.user import (
+    Create_user,
+    User,
+    UserInput,
+    UserVerification,
+)
 from backend.app.utils import api_errors
+
+_settings = get_settings()
 
 
 class UserService:
     def __init__(self, user_repository: UserRepository) -> None:
         """init."""
         self._user_repository = user_repository
+        self._oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
         self._pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
     def get(self, email: str) -> User:
@@ -65,19 +78,25 @@ class UserService:
         self.validate_create_user_input(user_input=user_input)
 
         password_hashed = self._pwd_context.hash(user_input.password)
-        # TODO generate new code after 30m  if not verified user
+
         verification_code = self.generate_verification_code()
-        time_now = str(datetime.now())
+        time_now = datetime.now()
+
+        valid_until = datetime.now() + timedelta(minutes=30)
+
+        verification = UserVerification(
+            verified=False,
+            verification_code=verification_code,
+            valid_until=valid_until,
+        )
 
         user = Create_user(
             id=user_input.email,
+            name=user_input.name,
             email=user_input.email,
             roles=["free"],
             password=password_hashed,
-            verification={
-                "verified": False,
-                "verification_code": verification_code,
-            },
+            verification=verification,
             created_at=time_now,
             updated_at=time_now,
         )
@@ -105,3 +124,64 @@ class UserService:
             )
 
         return user
+
+    def create_access_token(
+        self, data: dict, expires_delta: timedelta | None = None
+    ):
+        to_encode = data.copy()
+
+        expire = datetime.utcnow() + expires_delta
+        to_encode.update({"exp": expire})
+
+        encoded_jwt = jwt.encode(
+            to_encode,
+            _settings.JWT_SECRET_KEY,
+            algorithm=_settings.JWT_ALGORITHM,
+        )
+        return encoded_jwt
+
+    def generate_token(self, email: str, roles: list[str]):
+        """Generate token."""
+        access_token_expires = timedelta(
+            minutes=_settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES
+        )
+        access_token = self.create_access_token(
+            data={"user": email, "roles": roles},
+            expires_delta=access_token_expires,
+        )
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+        }
+
+    def authenticate(self, email: str, password: str) -> dict:
+        """Authenticate user."""
+        self.get_by_id(email)
+
+        user = self._user_repository.get_credentials(email)
+        if not bcrypt.checkpw(
+            password.encode("utf-8"), user.password.encode("utf-8")
+        ):
+            raise HTTPException(status_code=401, detail="Incorrect password")
+        token = self.generate_token(email=email, roles=user.roles)
+        return token
+
+    def renew_token(self, token: str) -> dict:
+        """Authenticate user."""
+        try:
+            payload = jwt.decode(
+                token,
+                _settings.JWT_SECRET_KEY,
+                algorithms=[_settings.JWT_ALGORITHM],
+            )
+        except JWTError as e:
+            raise HTTPException(status_code=401, detail=f"Invalid Token {e}")
+
+        email = payload.get("user")
+
+        self.get_by_id(email)
+        user = self._user_repository.get_credentials(email)
+
+        token = self.generate_token(email=email, roles=user.roles)
+
+        return token
