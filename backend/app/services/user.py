@@ -11,7 +11,9 @@ from passlib.context import CryptContext
 
 from backend.app.config.settings import get_settings
 from backend.app.events.email import EmailEvent
+from backend.app.repositories.cookies import CookieRepository
 from backend.app.repositories.user import UserRepository
+from backend.app.schemas.cookies import Cookie
 from backend.app.schemas.user import (
     Create_user,
     User,
@@ -24,9 +26,14 @@ _settings = get_settings()
 
 
 class UserService:
-    def __init__(self, user_repository: UserRepository) -> None:
+    def __init__(
+        self,
+        user_repository: UserRepository,
+        cookie_repository: CookieRepository,
+    ) -> None:
         """init."""
         self._user_repository = user_repository
+        self._cookie_repository = cookie_repository
         self._oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
         self._pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -149,6 +156,18 @@ class UserService:
             data={"user": email, "roles": roles},
             expires_delta=access_token_expires,
         )
+
+        cookie = self._cookie_repository.Save(
+            Cookie(
+                id=email,
+                token=access_token,
+            )
+        )
+        if not cookie:
+            raise HTTPException(
+                status_code=500, detail="Error saving cookie in database"
+            )
+
         return {
             "access_token": access_token,
             "token_type": "bearer",

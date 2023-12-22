@@ -20,13 +20,6 @@ class TestUser(BaseTest):
         """Test to send new user."""
         # FIXTURE
         owner_email = "usuario-teste@teste.com"
-
-        token = generate_jwt_token(owner_email)
-        request_headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {token}",
-        }
-
         user = {
             "email": owner_email,
             "password": "123456",
@@ -46,7 +39,6 @@ class TestUser(BaseTest):
         response = self.app_client.post(
             "/api/v1/user",
             json=user,
-            headers=request_headers,
         )
 
         # ASSERT

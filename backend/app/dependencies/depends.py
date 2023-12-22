@@ -8,17 +8,63 @@ from pymongo.database import Database
 from backend.app.config.settings import get_settings
 from backend.app.dependencies.database import get_database
 from backend.app.repositories.base import BaseRepository
+from backend.app.repositories.cookies import CookieRepository
 from backend.app.repositories.user import UserRepository
 from backend.app.schemas.user import User
 from backend.app.services.user import UserService
 
 
+def get_repository(
+    repo_type: type[BaseRepository],
+) -> Callable[[Database], BaseRepository]:
+    """Get a repository as callable."""
+    if repo_type == UserRepository:
+
+        def _get_repo(db: Database = Depends(get_database)) -> BaseRepository:
+            return repo_type(db)
+
+        return _get_repo
+
+    if repo_type == CookieRepository:
+
+        def _get_repo(db: Database = Depends(get_database)) -> BaseRepository:
+            return repo_type(db)
+
+        return _get_repo
+
+
+def get_service(service_type: type[any]) -> Callable:
+    """Get a service as callable."""
+    if service_type == UserService:
+
+        def _service(
+            user_repository: UserRepository = Depends(
+                get_repository(UserRepository)
+            ),
+            cookie_repository: CookieRepository = Depends(
+                get_repository(CookieRepository)
+            ),
+        ) -> UserService:
+            return UserService(
+                user_repository=user_repository,
+                cookie_repository=cookie_repository,
+            )
+
+        return _service
+
+
 def authenticated_user(
-    roles: List[str] = [], return_token: bool = False
+    roles: List[str] = [],
+    return_token: bool = False,
 ) -> any:
     """Authenticate a user given a scope."""
 
-    def _auth(request: Request) -> Tuple[User]:
+    def _auth(
+        request: Request,
+        cookie_repository: CookieRepository = Depends(
+            get_repository(CookieRepository)
+        ),
+    ) -> Tuple[User]:
         _settings = get_settings()
 
         token = None
@@ -53,34 +99,12 @@ def authenticated_user(
         if payload_time < datetime.utcnow():
             raise HTTPException(status_code=401, detail="Token expired")
 
+        _token = cookie_repository.get_by_id(email)
+        if _token and _token.token != token:
+            raise HTTPException(status_code=401, detail="Invalid Token")
+
         if return_token:
             return token
         return email
 
     return _auth
-
-
-def get_repository(
-    repo_type: type[BaseRepository],
-) -> Callable[[Database], BaseRepository]:
-    """Get a repository as callable."""
-    if repo_type == UserRepository:
-
-        def _get_repo(db: Database = Depends(get_database)) -> BaseRepository:
-            return repo_type(db)
-
-        return _get_repo
-
-
-def get_service(service_type: type[any]) -> Callable:
-    """Get a service as callable."""
-    if service_type == UserService:
-
-        def _service(
-            user_repository: UserRepository = Depends(
-                get_repository(UserRepository)
-            ),
-        ) -> UserService:
-            return UserService(user_repository=user_repository)
-
-        return _service
