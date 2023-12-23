@@ -3,7 +3,7 @@ from datetime import datetime
 from time import sleep
 from unittest.mock import Mock, patch
 
-from backend.app.schemas.user import Create_user
+from backend.app.schemas.users.user import Create_user
 
 # from backend.app.schemas.user import Create_user
 from backend.tests.integration.base import BaseTest

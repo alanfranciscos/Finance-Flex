@@ -9,8 +9,12 @@ from backend.app.config.settings import get_settings
 from backend.app.dependencies.database import get_database
 from backend.app.repositories.base import BaseRepository
 from backend.app.repositories.cookies import CookieRepository
-from backend.app.repositories.user import UserRepository
-from backend.app.schemas.user import User
+from backend.app.repositories.users.password import PasswordsRepository
+from backend.app.repositories.users.password_staging import (
+    PsswordStagingRepository,
+)
+from backend.app.repositories.users.user import UserRepository
+from backend.app.schemas.users.user import User
 from backend.app.services.user import UserService
 
 
@@ -18,19 +22,11 @@ def get_repository(
     repo_type: type[BaseRepository],
 ) -> Callable[[Database], BaseRepository]:
     """Get a repository as callable."""
-    if repo_type == UserRepository:
 
-        def _get_repo(db: Database = Depends(get_database)) -> BaseRepository:
-            return repo_type(db)
+    def _get_repo(db: Database = Depends(get_database)) -> BaseRepository:
+        return repo_type(db)
 
-        return _get_repo
-
-    if repo_type == CookieRepository:
-
-        def _get_repo(db: Database = Depends(get_database)) -> BaseRepository:
-            return repo_type(db)
-
-        return _get_repo
+    return _get_repo
 
 
 def get_service(service_type: type[any]) -> Callable:
@@ -44,10 +40,18 @@ def get_service(service_type: type[any]) -> Callable:
             cookie_repository: CookieRepository = Depends(
                 get_repository(CookieRepository)
             ),
+            password_repository: PasswordsRepository = Depends(
+                get_repository(PasswordsRepository)
+            ),
+            password_staging_repository: PsswordStagingRepository = Depends(
+                get_repository(PsswordStagingRepository)
+            ),
         ) -> UserService:
             return UserService(
                 user_repository=user_repository,
                 cookie_repository=cookie_repository,
+                password_repository=password_repository,
+                password_staging_repository=password_staging_repository,
             )
 
         return _service

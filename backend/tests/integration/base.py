@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from passlib.context import CryptContext
 
-from backend.app.schemas.user import Create_user, User
+from backend.app.schemas.users.user import Create_user, User
 from backend.tests.integration.database import (
     get_database as get_database_tests,
 )

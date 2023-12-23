@@ -12,9 +12,14 @@ from passlib.context import CryptContext
 from backend.app.config.settings import get_settings
 from backend.app.events.email import EmailEvent
 from backend.app.repositories.cookies import CookieRepository
-from backend.app.repositories.user import UserRepository
+from backend.app.repositories.users.password import PasswordsRepository
+from backend.app.repositories.users.password_staging import (
+    PsswordStagingRepository,
+)
+from backend.app.repositories.users.user import UserRepository
 from backend.app.schemas.cookies import Cookie
-from backend.app.schemas.user import (
+from backend.app.schemas.users.password import PasswordStaging
+from backend.app.schemas.users.user import (
     Create_user,
     User,
     UserInput,
@@ -30,12 +35,17 @@ class UserService:
         self,
         user_repository: UserRepository,
         cookie_repository: CookieRepository,
+        password_repository: PasswordsRepository,
+        password_staging_repository: PsswordStagingRepository,
     ) -> None:
         """init."""
         self._user_repository = user_repository
         self._cookie_repository = cookie_repository
+        self._password_repository = password_repository
+        self._password_staging_repository = password_staging_repository
         self._oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
         self._pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+        self._emailEvent = EmailEvent()
 
     def get(self, email: str) -> User:
         """Get a user."""
@@ -108,7 +118,7 @@ class UserService:
             updated_at=time_now,
         )
 
-        EmailEvent().send_email(
+        self._emailEvent.send_email(
             boddy=f"Your verification code is: {verification_code}",
             to=user.email,
             subject="Verification code",
@@ -135,6 +145,7 @@ class UserService:
     def create_access_token(
         self, data: dict, expires_delta: timedelta | None = None
     ):
+        """Function to create access token."""
         to_encode = data.copy()
 
         expire = datetime.utcnow() + expires_delta
@@ -204,3 +215,49 @@ class UserService:
         token = self.generate_token(email=email, roles=user.roles)
 
         return token
+
+    def _verify_password(self, old_password: str, new_password: str):
+        if bcrypt.checkpw(
+            old_password.encode("utf-8"),
+            new_password.encode("utf-8"),
+        ):
+            raise HTTPException(
+                status_code=401, detail="Password already used"
+            )
+
+    def request_forgot_password(
+        self, id: str, password: str
+    ) -> PasswordStaging:
+        """Forgot password."""
+        passwor_user = self._user_repository.get_password_from_user(id)
+
+        password_hashed = self._pwd_context.hash(password)
+
+        list_of_passwords = self._password_repository.get_passwords_from_user(
+            id=id
+        )
+        self._verify_password(password, passwor_user)
+        if list_of_passwords:
+            for _password in list_of_passwords.passwords:
+                self._verify_password(password, _password.password)
+
+        code = self.generate_verification_code()
+        create_password_staging = PasswordStaging(
+            id=id,
+            password=password_hashed,
+            code=code,
+            valid_until=datetime.utcnow() + timedelta(minutes=30),
+        )
+        create_password_staging = (
+            self._password_staging_repository.save_password_staging(
+                password_staging=create_password_staging
+            )
+        )
+
+        self._emailEvent.send_email(
+            boddy=f"Your verification code is: {code}",
+            to=id,
+            subject="Verification code - Forget password",
+        )
+
+        return create_password_staging

@@ -18,10 +18,10 @@ class CookieRepository(BaseRepository):
         self._collection_name = "cookies"
         self._cookie_repository = db[self._collection_name]
 
-    def _create_cookie_from_mongo(self, user_dict: Dict) -> CookieResponse:
+    def _create_cookie_from_mongo(self, cookie_dict: Dict) -> CookieResponse:
         cookie = {
             k: set_default_timezone(v) if type(v) is datetime else v
-            for k, v in user_dict.items()
+            for k, v in cookie_dict.items()
             if k != "_id"
         }
 

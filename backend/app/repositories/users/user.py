@@ -6,7 +6,7 @@ from fastapi.exceptions import ValidationException
 from pymongo.database import Database
 
 from backend.app.repositories.base import BaseRepository
-from backend.app.schemas.user import Create_user, User, UserCredentials
+from backend.app.schemas.users.user import Create_user, User, UserCredentials
 from backend.app.utils.datetime import set_default_timezone
 
 
@@ -49,6 +49,22 @@ class UserRepository(BaseRepository):
             return self._create_user_from_mongo(doc)
 
         return None
+
+    def get_password_from_user(self, id: str) -> str:
+        try:
+            doc: dict = self._user_collection.find_one({"_id": id})
+        except errors.InvalidId:
+            raise ValidationException(
+                "The Id entered is not a valid ObjectId."
+            )
+
+        user = {
+            k: set_default_timezone(v) if type(v) is datetime else v
+            for k, v in doc.items()
+            if k != "_id"
+        }
+
+        return user["password"]
 
     def create(self, user: Create_user) -> User:
         """Insert a user."""
