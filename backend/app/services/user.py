@@ -52,7 +52,7 @@ class UserService:
         user = self._user_repository.get_by_id(email)
         return user
 
-    def validate_create_user_input(self, user_input: UserInput):
+    def validate_create_user_input(self, user_input: UserInput) -> None:
         """Validate user input."""
 
         if self.get(user_input.email):
@@ -75,15 +75,17 @@ class UserService:
 
         verification_code = ""
         i = 0
-        while i < 2:
-            verification_code += str(random.randint(1, 10))
+        while i < 3:
+            number = random.randint(0, 9)
+            verification_code += str(number)
             i += 1
 
         verification_code += "-"
 
         i = 0
-        while i < 2:
-            verification_code += str(random.randint(1, 10))
+        while i < 3:
+            number = random.randint(0, 9)
+            verification_code += str(number)
             i += 1
         return verification_code
 
