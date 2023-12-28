@@ -45,3 +45,8 @@ class User(BaseModel):
 class UserAuthentication(BaseModel):
     email: str
     password: str
+
+
+class UserVerification(BaseModel):
+    code: str
+    valid_until: datetime

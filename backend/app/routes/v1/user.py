@@ -128,3 +128,32 @@ def forgot_password(
     )
 
     return validate
+
+
+@router.post("/validate-user-code")
+def validate_user_code(
+    email: str,
+    code: str,
+    change_password: bool = False,
+    user_service: UserService = Depends(get_service(UserService)),
+) -> bool:
+    """Validate user code.
+
+    This endpoint recive a user email and if user request change password or no
+    and return if code is valid.
+
+    Body:
+    - email: str
+    - change_password:  Optional[bool] = False
+
+    Return:
+    - valid: bool
+    """
+
+    valid_code = user_service.validate_user_code(
+        email=email,
+        code=code,
+        change_password=change_password,
+    )
+
+    return valid_code

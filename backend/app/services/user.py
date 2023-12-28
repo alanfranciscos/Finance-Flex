@@ -188,7 +188,10 @@ class UserService:
 
     def authenticate(self, email: str, password: str) -> dict:
         """Authenticate user."""
-        self.get_by_id(email)
+        user = self.get_by_id(email)
+
+        if not user.verificated:
+            raise HTTPException(status_code=401, detail="User not verified")
 
         user = self._user_repository.get_credentials(email)
         if not bcrypt.checkpw(
@@ -263,3 +266,21 @@ class UserService:
         )
 
         return create_password_staging
+
+    def validate_user_code(
+        self, email: str, code: str, change_password: bool
+    ) -> bool:
+        """Validate user code."""
+        if change_password:
+            staging = self._password_staging_repository.get_by_id(id=email)
+            if staging.code.replace("-", "") == code.replace("-", ""):
+                return True
+        else:
+            user = self._user_repository.get_verification_code(id=email)
+            if user.valid_until.replace(tzinfo=None) > datetime.utcnow():
+                raise HTTPException(
+                    status_code=401, detail="Code already expired"
+                )
+            if user.code.replace("-", "") == code.replace("-", ""):
+                return True
+        return False
