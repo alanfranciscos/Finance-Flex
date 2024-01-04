@@ -63,13 +63,7 @@ class BaseTest:
         user = {k: v for k, v in doc.items() if k != "_id"}
         user["id"] = str(doc["_id"])
 
-        return User(
-            id=user["id"],
-            email=user["email"],
-            name=user["name"],
-            roles=user["roles"],
-            verificated=user["verification"]["verified"],
-        )
+        return User(**user)
 
     def teardown_method(self) -> None:
         """Teardown any state that was previously setup."""

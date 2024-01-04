@@ -1,11 +1,16 @@
-from typing import Callable
+from datetime import datetime
+from typing import Callable, List, Tuple
 
-from fastapi import Depends
+from fastapi import Depends, HTTPException, Request
+from jose import JWTError, jwt
 from pymongo.database import Database
 
+from backend.app.config.settings import get_settings
 from backend.app.dependencies.database import get_database
 from backend.app.repositories.base import BaseRepository
+from backend.app.repositories.cookie import CookieRepository
 from backend.app.repositories.users import UserRepository
+from backend.app.services.authentication import AuthenticationService
 from backend.app.services.user import UserService
 
 
@@ -34,3 +39,75 @@ def get_service(service_type: type[any]) -> Callable:
             )
 
         return _service
+
+    if service_type == AuthenticationService:
+
+        def _service(
+            cookie_repository: CookieRepository = Depends(
+                get_repository(CookieRepository)
+            ),
+            user_service: UserService = Depends(get_service(UserService)),
+        ) -> AuthenticationService:
+            return AuthenticationService(
+                cookie_repository=cookie_repository,
+                user_service=user_service,
+            )
+
+        return _service
+
+
+def authenticated_user(
+    roles: List[str] = [],
+    return_token: bool = False,
+) -> any:
+    """Authenticate a user given a scope."""
+
+    def _auth(
+        request: Request,
+        cookie_repository: CookieRepository = Depends(
+            get_repository(CookieRepository)
+        ),
+    ) -> Tuple[str, str] | str:
+        _settings = get_settings()
+
+        token = None
+        headers = request.get("headers")
+        for header in headers:
+            if header[0].decode().lower() == "authorization":
+                token = header[1].decode().split(" ")[1]
+                break
+
+        try:
+            payload = jwt.decode(
+                token,
+                _settings.JWT_SECRET_KEY,
+                algorithms=[_settings.JWT_ALGORITHM],
+            )
+        except JWTError as e:
+            raise HTTPException(status_code=401, detail=f"Invalid Token {e}")
+
+        email = payload.get("user")
+        if not email:
+            raise HTTPException(status_code=401, detail="Invalid Email")
+
+        if roles:
+            for role in roles:
+                if role not in payload.get("roles"):
+                    raise HTTPException(
+                        status_code=401,
+                        detail=f"Invalid role {role}",
+                    )
+
+        payload_time = datetime.utcfromtimestamp(payload.get("exp"))
+        if payload_time < datetime.utcnow():
+            raise HTTPException(status_code=401, detail="Token expired")
+
+        _token = cookie_repository.get_by_id(email)
+        if _token and _token.token != token:
+            raise HTTPException(status_code=401, detail="Invalid Token")
+
+        if return_token:
+            return token
+        return email
+
+    return _auth
