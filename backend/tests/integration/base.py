@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from passlib.context import CryptContext
 
-from backend.app.schemas.users.user import Create_user, User
+from backend.app.schemas.user import User
 from backend.tests.integration.database import (
     get_database as get_database_tests,
 )
@@ -48,7 +48,7 @@ class BaseTest:
         cls.database = get_database_tests()
         cls.users_collection = cls.database.get_collection("users")
 
-    def create_user(self, user: Create_user) -> User:
+    def create_user(self, user: User) -> User:
         """Create user in database."""
         user = user.model_dump()
         pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")

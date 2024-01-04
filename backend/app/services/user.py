@@ -1,49 +1,27 @@
-"""User service"""
 import random
 import re
 from datetime import datetime, timedelta
 
-import bcrypt
-from fastapi import HTTPException
-from fastapi.security import OAuth2PasswordBearer
-from jose import JWTError, jwt
 from passlib.context import CryptContext
 
-from backend.app.config.settings import get_settings
 from backend.app.events.email import EmailEvent
-from backend.app.repositories.cookies import CookieRepository
-from backend.app.repositories.users.password import PasswordsRepository
-from backend.app.repositories.users.password_staging import (
-    PsswordStagingRepository,
-)
-from backend.app.repositories.users.user import UserRepository
-from backend.app.schemas.cookies import Cookie
-from backend.app.schemas.users.password import PasswordStaging
-from backend.app.schemas.users.user import (
-    Create_user,
+from backend.app.repositories.users import UserRepository
+from backend.app.schemas.user import (
     User,
+    UserInformations,
     UserInput,
     UserVerification,
 )
 from backend.app.utils import api_errors
-
-_settings = get_settings()
 
 
 class UserService:
     def __init__(
         self,
         user_repository: UserRepository,
-        cookie_repository: CookieRepository,
-        password_repository: PasswordsRepository,
-        password_staging_repository: PsswordStagingRepository,
-    ) -> None:
-        """init."""
+    ):
+        """Init."""
         self._user_repository = user_repository
-        self._cookie_repository = cookie_repository
-        self._password_repository = password_repository
-        self._password_staging_repository = password_staging_repository
-        self._oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
         self._pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
         self._emailEvent = EmailEvent()
 
@@ -92,7 +70,7 @@ class UserService:
     def create(
         self,
         user_input: UserInput,
-    ) -> User:
+    ) -> UserInformations:
         """Create a user."""
         self.validate_create_user_input(user_input=user_input)
 
@@ -109,7 +87,7 @@ class UserService:
             valid_until=valid_until,
         )
 
-        user = Create_user(
+        user = User(
             id=user_input.email,
             name=user_input.name,
             email=user_input.email,
@@ -127,160 +105,9 @@ class UserService:
         )
 
         created_user = self._user_repository.create(user)
-        return created_user
+        created_user = created_user.model_dump()
+        created_user["verificated"] = created_user["verification"]["verified"]
 
-    def get_by_id(
-        self,
-        email: str,
-    ) -> User:
-        """Get a user by email."""
+        user_informations = UserInformations(**created_user)
 
-        user = self.get(email)
-
-        if not user:
-            api_errors.raise_error_response(
-                api_errors.NotFound,
-            )
-
-        return user
-
-    def create_access_token(
-        self, data: dict, expires_delta: timedelta | None = None
-    ):
-        """Function to create access token."""
-        to_encode = data.copy()
-
-        expire = datetime.utcnow() + expires_delta
-        to_encode.update({"exp": expire})
-
-        encoded_jwt = jwt.encode(
-            to_encode,
-            _settings.JWT_SECRET_KEY,
-            algorithm=_settings.JWT_ALGORITHM,
-        )
-        return encoded_jwt
-
-    def generate_token(self, email: str, roles: list[str]):
-        """Generate token."""
-        access_token_expires = timedelta(
-            minutes=_settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES
-        )
-        access_token = self.create_access_token(
-            data={"user": email, "roles": roles},
-            expires_delta=access_token_expires,
-        )
-
-        cookie = self._cookie_repository.Save(
-            Cookie(
-                id=email,
-                token=access_token,
-            )
-        )
-        if not cookie:
-            raise HTTPException(
-                status_code=500, detail="Error saving cookie in database"
-            )
-
-        return {
-            "access_token": access_token,
-            "token_type": "bearer",
-        }
-
-    def authenticate(self, email: str, password: str) -> dict:
-        """Authenticate user."""
-        user = self.get_by_id(email)
-
-        if not user.verificated:
-            raise HTTPException(status_code=401, detail="User not verified")
-
-        user = self._user_repository.get_credentials(email)
-        if not bcrypt.checkpw(
-            password.encode("utf-8"), user.password.encode("utf-8")
-        ):
-            raise HTTPException(status_code=401, detail="Incorrect password")
-        token = self.generate_token(email=email, roles=user.roles)
-        return token
-
-    def renew_token(self, token: str) -> dict:
-        """Authenticate user."""
-        try:
-            payload = jwt.decode(
-                token,
-                _settings.JWT_SECRET_KEY,
-                algorithms=[_settings.JWT_ALGORITHM],
-            )
-        except JWTError as e:
-            raise HTTPException(status_code=401, detail=f"Invalid Token {e}")
-
-        email = payload.get("user")
-
-        self.get_by_id(email)
-        user = self._user_repository.get_credentials(email)
-
-        token = self.generate_token(email=email, roles=user.roles)
-
-        return token
-
-    def _verify_password(self, old_password: str, new_password: str):
-        if bcrypt.checkpw(
-            old_password.encode("utf-8"),
-            new_password.encode("utf-8"),
-        ):
-            raise HTTPException(
-                status_code=401, detail="Password already used"
-            )
-
-    def request_forgot_password(
-        self, id: str, password: str
-    ) -> PasswordStaging:
-        """Forgot password."""
-        passwor_user = self._user_repository.get_password_from_user(id)
-
-        password_hashed = self._pwd_context.hash(password)
-
-        list_of_passwords = self._password_repository.get_passwords_from_user(
-            id=id
-        )
-        self._verify_password(password, passwor_user)
-        if list_of_passwords:
-            for _password in list_of_passwords.passwords:
-                self._verify_password(password, _password.password)
-
-        code = self.generate_verification_code()
-        create_password_staging = PasswordStaging(
-            id=id,
-            password=password_hashed,
-            code=code,
-            valid_until=datetime.utcnow() + timedelta(minutes=30),
-        )
-        create_password_staging = (
-            self._password_staging_repository.save_password_staging(
-                password_staging=create_password_staging
-            )
-        )
-
-        self._emailEvent.send_email(
-            boddy=f"Your verification code is: {code}",
-            to=id,
-            subject="Verification code - Forget password",
-        )
-
-        return create_password_staging
-
-    def validate_user_code(
-        self, email: str, code: str, change_password: bool
-    ) -> bool:
-        """Validate user code."""
-        if change_password:
-            staging = self._password_staging_repository.get_by_id(id=email)
-            if staging.code.replace("-", "") == code.replace("-", ""):
-                return True
-        else:
-            user = self._user_repository.get_verification_code(id=email)
-            if user.valid_until.replace(tzinfo=None) > datetime.utcnow():
-                raise HTTPException(
-                    status_code=401, detail="Code already expired"
-                )
-            if user.code.replace("-", "") == code.replace("-", ""):
-                return True
-        return False
+        return user_informations

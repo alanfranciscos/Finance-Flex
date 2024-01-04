@@ -3,7 +3,7 @@ from unittest.mock import Mock
 import pytest
 from fastapi import HTTPException
 
-from backend.app.schemas.users.user import UserInput
+from backend.app.schemas.user import UserInput
 from backend.app.services.user import UserService
 
 
@@ -27,10 +27,7 @@ class TestUser:
         user_repository.get_by_id.return_value = None
 
         user_sevice = UserService(
-            cookie_repository=Mock(),
             user_repository=user_repository,
-            password_repository=Mock(),
-            password_staging_repository=Mock(),
         )
 
         # EXERCISE
@@ -56,10 +53,7 @@ class TestUser:
             user_repository.get_by_id.return_value = None
 
             user_sevice = UserService(
-                cookie_repository=Mock(),
                 user_repository=user_repository,
-                password_repository=Mock(),
-                password_staging_repository=Mock(),
             )
 
             # EXERCISE
@@ -73,10 +67,7 @@ class TestUser:
         """Test to validate user input."""
         # FIXTURE
         user_sevice = UserService(
-            cookie_repository=Mock(),
             user_repository=Mock(),
-            password_repository=Mock(),
-            password_staging_repository=Mock(),
         )
 
         # EXERCISE

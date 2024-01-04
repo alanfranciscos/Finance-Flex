@@ -3,7 +3,7 @@ from datetime import datetime
 from time import sleep
 from unittest.mock import Mock, patch
 
-from backend.app.schemas.users.user import Create_user
+from backend.app.schemas.user import User
 
 # from backend.app.schemas.user import Create_user
 from backend.tests.integration.base import BaseTest
@@ -100,7 +100,7 @@ class TestUser(BaseTest):
             "updated_at": time_now,
         }
 
-        user = Create_user(**user)
+        user = User(**user)
         self.create_user(user=user)
 
         credentials = {
@@ -142,7 +142,7 @@ class TestUser(BaseTest):
             "updated_at": time_now,
         }
 
-        user = Create_user(**user)
+        user = User(**user)
         self.create_user(user=user)
 
         credentials = {
@@ -182,7 +182,7 @@ class TestUser(BaseTest):
             "updated_at": time_now,
         }
 
-        user = Create_user(**user)
+        user = User(**user)
         self.create_user(user=user)
 
         credentials = {
@@ -240,7 +240,7 @@ class TestUser(BaseTest):
             "updated_at": time_now,
         }
 
-        user = Create_user(**user)
+        user = User(**user)
         self.create_user(user=user)
 
         credentials = {
