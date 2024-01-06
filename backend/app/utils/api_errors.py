@@ -108,6 +108,17 @@ class ErrorAuthenticationInvalid:
     }
 
 
+class DataAlreadyExists:
+    """Class that defines an error for a data already exists."""
+
+    status_code = 409
+
+    error = {
+        "type": "data_already_exists",
+        "description": "The data already exist.",
+    }
+
+
 class GenericBadRequest:
     """Class that defines an error for a bad request."""
 

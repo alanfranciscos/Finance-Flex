@@ -3,9 +3,8 @@ from typing import List
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from passlib.context import CryptContext
 
-from backend.app.schemas.user import User
+from backend.tests.integration.create_db_doc import CreateDbDoc
 from backend.tests.integration.database import (
     get_database as get_database_tests,
 )
@@ -46,24 +45,14 @@ class BaseTest:
         cls.app_client = TestClient(_get_app())
 
         cls.database = get_database_tests()
-        cls.users_collection = cls.database.get_collection("users")
 
-    def create_user(self, user: User) -> User:
-        """Create user in database."""
-        user = user.model_dump()
-        pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-        user["password"] = pwd_context.hash(user["password"])
+        def _create_database_doc() -> CreateDbDoc:
+            """create_database_doc."""
+            return CreateDbDoc(
+                database=cls.database,
+            )
 
-        user["_id"] = user["id"]
-        user.pop("id")
-        self.users_collection.insert_one(user)
-
-        doc = self.users_collection.find_one({"_id": user["_id"]})
-
-        user = {k: v for k, v in doc.items() if k != "_id"}
-        user["id"] = str(doc["_id"])
-
-        return User(**user)
+        cls.create_database_doc: CreateDbDoc = _create_database_doc()
 
     def teardown_method(self) -> None:
         """Teardown any state that was previously setup."""

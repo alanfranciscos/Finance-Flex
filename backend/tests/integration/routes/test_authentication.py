@@ -35,7 +35,7 @@ class TestAuthentication(BaseTest):
         }
 
         user = User(**user)
-        self.create_user(user=user)
+        self.create_database_doc.create_user(user=user)
 
         credentials = {
             "email": owner_email,
@@ -77,7 +77,7 @@ class TestAuthentication(BaseTest):
         }
 
         user = User(**user)
-        self.create_user(user=user)
+        self.create_database_doc.create_user(user=user)
 
         credentials = {
             "email": "other_user",
@@ -122,7 +122,7 @@ class TestAuthentication(BaseTest):
         }
 
         user = User(**user)
-        self.create_user(user=user)
+        self.create_database_doc.create_user(user=user)
 
         header = self.get_header(user_email, ["free"])
         token = header.get("Authorization").split(" ")[1]
@@ -164,7 +164,7 @@ class TestAuthentication(BaseTest):
         }
 
         user = User(**user)
-        self.create_user(user=user)
+        self.create_database_doc.create_user(user=user)
 
         header = self.get_header(user_email, ["free"])
         token = header.get("Authorization").split(" ")[1]

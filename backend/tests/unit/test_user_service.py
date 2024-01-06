@@ -28,6 +28,8 @@ class TestUser:
 
         user_sevice = UserService(
             user_repository=user_repository,
+            password_repository=Mock(),
+            password_staging_repository=Mock(),
         )
 
         # EXERCISE
@@ -54,6 +56,8 @@ class TestUser:
 
             user_sevice = UserService(
                 user_repository=user_repository,
+                password_repository=Mock(),
+                password_staging_repository=Mock(),
             )
 
             # EXERCISE
@@ -68,6 +72,8 @@ class TestUser:
         # FIXTURE
         user_sevice = UserService(
             user_repository=Mock(),
+            password_repository=Mock(),
+            password_staging_repository=Mock(),
         )
 
         # EXERCISE

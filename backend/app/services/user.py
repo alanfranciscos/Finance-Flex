@@ -2,10 +2,17 @@ import random
 import re
 from datetime import datetime, timedelta
 
+import bcrypt
 from passlib.context import CryptContext
 
 from backend.app.events.email import EmailEvent
+from backend.app.repositories.password_staging import PsswordStagingRepository
+from backend.app.repositories.passwords import PasswordsRepository
 from backend.app.repositories.users import UserRepository
+from backend.app.schemas.passwords import (
+    PasswordStaging,
+    PasswordStagingValidate,
+)
 from backend.app.schemas.user import (
     User,
     UserInformations,
@@ -19,9 +26,13 @@ class UserService:
     def __init__(
         self,
         user_repository: UserRepository,
+        password_repository: PasswordsRepository,
+        password_staging_repository: PsswordStagingRepository,
     ):
         """Init."""
         self._user_repository = user_repository
+        self._password_repository = password_repository
+        self._password_staging_repository = password_staging_repository
         self._pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
         self._emailEvent = EmailEvent()
 
@@ -111,3 +122,48 @@ class UserService:
         user_informations = UserInformations(**created_user)
 
         return user_informations
+
+    def _verify_password(self, old_password: str, new_password: str):
+        if bcrypt.checkpw(
+            old_password.encode("utf-8"),
+            new_password.encode("utf-8"),
+        ):
+            api_errors.raise_error_response(
+                api_errors.DataAlreadyExists,
+            )
+
+    def request_forgot_password(
+        self, id: str, password: str
+    ) -> PasswordStagingValidate:
+        """Forgot password."""
+        user = self.get(id)
+        password_user = user.password
+
+        password_hashed = self._pwd_context.hash(password)
+
+        list_of_passwords = self._password_repository.get_list(user=id)
+        self._verify_password(password, password_user)
+        if list_of_passwords:
+            for _password in list_of_passwords.passwords:
+                self._verify_password(password, _password.password)
+
+        code = self.generate_verification_code()
+        create_password_staging = PasswordStaging(
+            id=id,
+            password=password_hashed,
+            code=code,
+            valid_until=datetime.utcnow() + timedelta(minutes=30),
+        )
+        password_staging_validate = (
+            self._password_staging_repository.save_password_staging(
+                password_staging=create_password_staging
+            )
+        )
+
+        self._emailEvent.send_email(
+            boddy=f"Your verification code is: {code}",
+            to=id,
+            subject="Verification code - Forget password",
+        )
+
+        return password_staging_validate
