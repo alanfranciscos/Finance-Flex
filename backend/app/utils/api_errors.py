@@ -62,6 +62,17 @@ class ErrorResourceFormatInvalid:
     }
 
 
+class ErrorExpiredData:
+    """Class that defines an error for a data expired."""
+
+    status_code = 400
+
+    error = {
+        "type": "expired_data",
+        "description": "The data is expired.",
+    }
+
+
 class ErrorInternal:
     """Class that defines an error for an internal error."""
 

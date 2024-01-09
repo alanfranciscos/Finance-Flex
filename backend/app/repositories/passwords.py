@@ -5,7 +5,7 @@ from bson import errors
 from pymongo.database import Database
 
 from backend.app.repositories.base import BaseRepository
-from backend.app.schemas.passwords import PasswordList
+from backend.app.schemas.passwords import PasswordHeader, PasswordList
 from backend.app.utils.datetime import set_default_timezone
 
 
@@ -43,3 +43,29 @@ class PasswordsRepository(BaseRepository):
 
         if doc:
             return self._create_password_from_mongo(doc)
+
+    def save_password(
+        self, id: str, password_header: PasswordHeader
+    ) -> PasswordList:
+        """save password in staging area.
+
+        Parameters:
+        **password_staging (PasswordStaging)**:
+           - id: str
+           - password: str
+           - code: str
+           - valid_until: datetime
+        """
+        list_passwords = self.get_list(id)
+
+        if not list_passwords:
+            list_passwords = PasswordList(id=id, passwords=[password_header])
+            self._passwords_repository.insert_one(list_passwords.model_dump())
+
+        else:
+            list_passwords.passwords.append(password_header)
+
+            self._passwords_repository.find_one_and_replace(
+                filter={"_id": id}, replacement=list_passwords.model_dump()
+            )
+        return self.get_list(id)

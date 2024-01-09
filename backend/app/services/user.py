@@ -6,10 +6,11 @@ import bcrypt
 from passlib.context import CryptContext
 
 from backend.app.events.email import EmailEvent
-from backend.app.repositories.password_staging import PsswordStagingRepository
+from backend.app.repositories.password_staging import PasswordStagingRepository
 from backend.app.repositories.passwords import PasswordsRepository
 from backend.app.repositories.users import UserRepository
 from backend.app.schemas.passwords import (
+    PasswordHeader,
     PasswordStaging,
     PasswordStagingValidate,
 )
@@ -27,7 +28,7 @@ class UserService:
         self,
         user_repository: UserRepository,
         password_repository: PasswordsRepository,
-        password_staging_repository: PsswordStagingRepository,
+        password_staging_repository: PasswordStagingRepository,
     ):
         """Init."""
         self._user_repository = user_repository
@@ -167,3 +168,76 @@ class UserService:
         )
 
         return password_staging_validate
+
+    def code_validation(self, id: str, code: str) -> str:
+        """Code validation."""
+
+        user: User = self.get(email=id)
+
+        if not user:
+            api_errors.raise_error_response(
+                api_errors.NotFound,
+                detail="User not found",
+            )
+
+        # first verification
+        if not user.verification.verified:
+            if (
+                user.verification.verification_code == code
+                and user.verification.valid_until.replace(tzinfo=None)
+                > datetime.utcnow()
+            ):
+                user.verification.verified = True
+                self._user_repository.update(user)
+
+                password_header = PasswordHeader(
+                    password=user.password,
+                    created_at=datetime.utcnow(),
+                )
+                self._password_repository.save_password(
+                    id=id, password_header=password_header
+                )
+
+                return "user verified"
+            else:
+                api_errors.raise_error_response(
+                    api_errors.ErrorExpiredData,
+                )
+        else:
+            # second verification
+            password_staging = self._password_staging_repository.get_by_id(
+                id=id
+            )
+
+            if not password_staging:
+                api_errors.raise_error_response(
+                    api_errors.NotFound,
+                    detail="Password staging not found",
+                )
+
+            if (
+                password_staging.code == code
+                and password_staging.valid_until.replace(tzinfo=None)
+                > datetime.utcnow()
+            ):
+                self._password_staging_repository.delete_by_id(id=id)
+                user.password = password_staging.password
+                self._user_repository.update(user)
+
+                password_header = PasswordHeader(
+                    password=user.password,
+                    created_at=datetime.utcnow(),
+                )
+                self._password_repository.save_password(
+                    id=id, password_header=password_header
+                )
+                return "user verified"
+            else:
+                api_errors.raise_error_response(
+                    api_errors.ErrorExpiredData,
+                )
+
+        api_errors.raise_error_response(
+            api_errors.ErrorResourceDataInvalid,
+            detail="Invalid code",
+        )

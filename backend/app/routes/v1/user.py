@@ -3,7 +3,11 @@ from fastapi import APIRouter, Depends
 from backend.app.dependencies.depends import get_service
 from backend.app.schemas.authentication import AuthenticationInput
 from backend.app.schemas.passwords import PasswordStagingValidate
-from backend.app.schemas.user import UserInformations, UserInput
+from backend.app.schemas.user import (
+    UserInformations,
+    UserInput,
+    UserValidationInput,
+)
 from backend.app.services.user import UserService
 
 router = APIRouter()
@@ -57,6 +61,32 @@ def forgot_password(
 
     validate = user_service.request_forgot_password(
         id=user_input.email, password=user_input.password
+    )
+
+    return validate
+
+
+@router.post("/code-validation")
+def code_validation(
+    user_input: UserValidationInput,
+    user_service: UserService = Depends(get_service(UserService)),
+) -> str:
+    """Forot password.
+
+    This endpoint recive a user id (email) and send a email with a
+    code to reset the password.
+
+    Body:
+    - **UserAuthentication (UserAuthentication):**
+        - email: str
+        - code: str
+
+    Return in cookie:
+    - status: str
+    """
+
+    validate = user_service.code_validation(
+        id=user_input.email, code=user_input.code
     )
 
     return validate

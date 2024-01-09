@@ -54,3 +54,14 @@ class UserRepository(BaseRepository):
 
         self._user_collection.insert_one(src_user)
         return self.get_by_id(user.id)
+
+    def update(self, user: User) -> User:
+        """Update a user."""
+        src_user = user.model_dump()
+        src_user["_id"] = src_user["id"]
+        src_user.pop("id")
+
+        self._user_collection.update_one(
+            {"_id": src_user["_id"]}, {"$set": src_user}
+        )
+        return self.get_by_id(user.id)

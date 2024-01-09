@@ -32,3 +32,8 @@ class UserInformations(BaseModel):
     name: str
     roles: List[str] = []
     verificated: bool
+
+
+class UserValidationInput(BaseModel):
+    email: str
+    code: str

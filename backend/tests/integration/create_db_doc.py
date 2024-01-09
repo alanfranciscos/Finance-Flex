@@ -51,12 +51,8 @@ class CreateDbDoc:
         )
 
         password = {k: v for k, v in doc.items()}
-        return PasswordStaging(
-            id=password["_id"],
-            password=password["password"],
-            code=password["code"],
-            valid_until=password["valid_until"],
-        )
+        password["id"] = str(doc["_id"])
+        return PasswordStaging(**password)
 
     # TODO -> Create a function to insert only one element in to list
     def create_password_list(

@@ -243,3 +243,300 @@ class TestUser(BaseTest):
             response.json()["detail"]["description"]
             == "The data already exist."
         )
+
+    def test_code_validation__send_valid_code_firtst_validation__expect_true(
+        self,
+    ):
+        """Test code validation."""
+        # FIXTURE
+        user_email = "email-teste@gmail.com"
+
+        time_now = datetime.utcnow()
+        user = {
+            "id": user_email,
+            "email": user_email,
+            "name": "Teste",
+            "roles": ["free"],
+            "password": "password",
+            "verification": {
+                "verified": False,
+                "verification_code": "585-858",
+                "valid_until": time_now + timedelta(minutes=30),
+            },
+            "created_at": time_now,
+            "updated_at": time_now,
+        }
+
+        user = User(**user)
+        self.create_database_doc.create_user(user=user)
+
+        body = {
+            "email": user_email,
+            "code": "585-858",
+        }
+
+        # EXERCISE
+        response = self.app_client.post(
+            "/api/v1/user/code-validation",
+            json=body,
+        )
+
+        # ASSERT
+        assert response.status_code == 200
+        assert response.json() == "user verified"
+
+    def test_code_validation__send_invalid_code_firtst_validation__expect_error(  # noqa: E501
+        self,
+    ):
+        """Test code validation."""
+        # FIXTURE
+        user_email = "email-teste@gmail.com"
+
+        time_now = datetime.utcnow()
+        valid_until = time_now + timedelta(minutes=30)
+        user = {
+            "id": user_email,
+            "email": user_email,
+            "name": "Teste",
+            "roles": ["free"],
+            "password": "password",
+            "verification": {
+                "verified": False,
+                "verification_code": "585-858",
+                "valid_until": valid_until,
+            },
+            "created_at": time_now,
+            "updated_at": time_now,
+        }
+
+        user = User(**user)
+        self.create_database_doc.create_user(user=user)
+
+        body = {
+            "email": user_email,
+            "code": "999-999",
+        }
+
+        # EXERCISE
+        response = self.app_client.post(
+            "/api/v1/user/code-validation",
+            json=body,
+        )
+
+        # ASSERT
+
+        assert response.status_code == 400
+        assert (
+            response.json()["detail"]["description"] == "The data is expired."
+        )
+
+    def test_code_validation__send_valid_code_staging_validation__expect_true(
+        self,
+    ):
+        """Test code validation."""
+        # FIXTURE
+        user_email = "email-teste@gmail.com"
+
+        time_now = datetime.utcnow()
+        valid_until = time_now + timedelta(minutes=30)
+        user = {
+            "id": user_email,
+            "email": user_email,
+            "name": "Teste",
+            "roles": ["free"],
+            "password": "password",
+            "verification": {
+                "verified": True,
+                "verification_code": "585-858",
+                "valid_until": valid_until,
+            },
+            "created_at": time_now,
+            "updated_at": time_now,
+        }
+
+        user = User(**user)
+        self.create_database_doc.create_user(user=user)
+
+        password_stg = PasswordStaging(
+            code="605-506",
+            id=user_email,
+            password="--password--",
+            valid_until=valid_until,
+        )
+
+        self.create_database_doc.create_password_staging(
+            password_stg=password_stg
+        )
+
+        body = {
+            "email": user_email,
+            "code": "605-506",
+        }
+
+        # EXERCISE
+        response = self.app_client.post(
+            "/api/v1/user/code-validation",
+            json=body,
+        )
+
+        # ASSERT
+
+        assert response.status_code == 200
+        assert response.json() == "user verified"
+
+    def test_code_validation__send_invalid_code_staging_validation__expect_error(  # noqa: E501
+        self,
+    ):
+        """Test code validation."""
+        # FIXTURE
+        user_email = "email-teste@gmail.com"
+
+        time_now = datetime.utcnow()
+        valid_until = time_now + timedelta(minutes=30)
+        user = {
+            "id": user_email,
+            "email": user_email,
+            "name": "Teste",
+            "roles": ["free"],
+            "password": "password",
+            "verification": {
+                "verified": True,
+                "verification_code": "585-858",
+                "valid_until": valid_until,
+            },
+            "created_at": time_now,
+            "updated_at": time_now,
+        }
+
+        user = User(**user)
+        self.create_database_doc.create_user(user=user)
+
+        password_stg = PasswordStaging(
+            code="605-506",
+            id=user_email,
+            password="--password--",
+            valid_until=valid_until,
+        )
+
+        self.create_database_doc.create_password_staging(
+            password_stg=password_stg
+        )
+
+        body = {
+            "email": user_email,
+            "code": "999-999",
+        }
+
+        # EXERCISE
+        response = self.app_client.post(
+            "/api/v1/user/code-validation",
+            json=body,
+        )
+
+        # ASSERT
+
+        assert response.status_code == 400
+        assert (
+            response.json()["detail"]["description"] == "The data is expired."
+        )
+
+    def test_code_validation__send_valid_code_first_validation_but_time_except___expect_true(  # noqa: E501
+        self,
+    ):
+        """Test code validation."""
+        # FIXTURE
+        user_email = "email-teste@gmail.com"
+
+        time_now = datetime.utcnow()
+        valid_until = time_now - timedelta(minutes=30)
+        user = {
+            "id": user_email,
+            "email": user_email,
+            "name": "Teste",
+            "roles": ["free"],
+            "password": "password",
+            "verification": {
+                "verified": False,
+                "verification_code": "585-858",
+                "valid_until": valid_until,
+            },
+            "created_at": time_now,
+            "updated_at": time_now,
+        }
+
+        user = User(**user)
+        self.create_database_doc.create_user(user=user)
+
+        body = {
+            "email": user_email,
+            "code": "999-999",
+        }
+
+        # EXERCISE
+        response = self.app_client.post(
+            "/api/v1/user/code-validation",
+            json=body,
+        )
+
+        # ASSERT
+
+        assert response.status_code == 400
+        assert (
+            response.json()["detail"]["description"] == "The data is expired."
+        )
+
+    def test_code_validation__send_valid_code_staging_validation_but_time_except___expect_true(  # noqa: E501
+        self,
+    ):
+        """Test code validation."""
+        # FIXTURE
+        user_email = "email-teste@gmail.com"
+
+        time_now = datetime.utcnow()
+        user = {
+            "id": user_email,
+            "email": user_email,
+            "name": "Teste",
+            "roles": ["free"],
+            "password": "password",
+            "verification": {
+                "verified": True,
+                "verification_code": "585-858",
+                "valid_until": time_now,
+            },
+            "created_at": time_now,
+            "updated_at": time_now,
+        }
+
+        user = User(**user)
+        self.create_database_doc.create_user(user=user)
+
+        valid_until = time_now - timedelta(minutes=30)
+        password_stg = PasswordStaging(
+            code="605-506",
+            id=user_email,
+            password="--password--",
+            valid_until=valid_until,
+        )
+
+        self.create_database_doc.create_password_staging(
+            password_stg=password_stg
+        )
+
+        body = {
+            "email": user_email,
+            "code": "999-999",
+        }
+
+        # EXERCISE
+        response = self.app_client.post(
+            "/api/v1/user/code-validation",
+            json=body,
+        )
+
+        # ASSERT
+
+        assert response.status_code == 400
+        assert (
+            response.json()["detail"]["description"] == "The data is expired."
+        )

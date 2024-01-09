@@ -9,7 +9,7 @@ from backend.app.config.settings import get_settings
 from backend.app.dependencies.database import get_database
 from backend.app.repositories.base import BaseRepository
 from backend.app.repositories.cookie import CookieRepository
-from backend.app.repositories.password_staging import PsswordStagingRepository
+from backend.app.repositories.password_staging import PasswordStagingRepository
 from backend.app.repositories.passwords import PasswordsRepository
 from backend.app.repositories.users import UserRepository
 from backend.app.services.authentication import AuthenticationService
@@ -38,8 +38,8 @@ def get_service(service_type: type[any]) -> Callable:
             password_repository: PasswordsRepository = Depends(
                 get_repository(PasswordsRepository)
             ),
-            password_staging_repository: PsswordStagingRepository = Depends(
-                get_repository(PsswordStagingRepository)
+            password_staging_repository: PasswordStagingRepository = Depends(
+                get_repository(PasswordStagingRepository)
             ),
         ) -> UserService:
             return UserService(

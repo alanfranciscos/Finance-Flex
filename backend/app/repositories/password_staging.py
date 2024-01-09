@@ -13,8 +13,8 @@ from backend.app.utils import api_errors
 from backend.app.utils.datetime import set_default_timezone
 
 
-class PsswordStagingRepository(BaseRepository):
-    """Class for PsswordStagingRepository."""
+class PasswordStagingRepository(BaseRepository):
+    """Class for PasswordStagingRepository."""
 
     def __init__(self, db: Database) -> None:
         super().__init__(db)
@@ -95,3 +95,17 @@ class PsswordStagingRepository(BaseRepository):
         )
 
         return password_staging_validate
+
+    def delete_by_id(self, id: str) -> None:
+        """Delete a password_staging by id.
+
+        Parameters:
+        id (string): password_staging identifier.
+        """
+        try:
+            self._passwords_repository.delete_one({"_id": id})
+        except errors.InvalidId:
+            api_errors.raise_error_response(
+                api_errors.ErrorResourceDataInvalid,
+                detail="Invalid id",
+            )

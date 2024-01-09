@@ -52,6 +52,47 @@ class TestAuthentication(BaseTest):
         assert response.json() == {"message": "Authenticated"}
         assert response.cookies["access_token"]
 
+    def test_authenticate_user__send_valid_data_but_user_dont_verified__expect_error(  # noqa: E501
+        self,
+    ) -> None:
+        """Test to authenticate user."""
+        # FIXTURE
+        owner_email = "usuario-teste@teste.com"
+
+        time_now = datetime.now()
+
+        user = {
+            "id": owner_email,
+            "email": owner_email,
+            "name": "Teste",
+            "roles": ["free"],
+            "password": "password",
+            "verification": {
+                "verified": False,
+                "verification_code": "12-34",
+                "valid_until": "2021-01-01T00:00:00",
+            },
+            "created_at": time_now,
+            "updated_at": time_now,
+        }
+
+        user = User(**user)
+        self.create_database_doc.create_user(user=user)
+
+        credentials = {
+            "email": owner_email,
+            "password": "password",
+        }
+
+        # EXERCISE
+        response = self.app_client.post(
+            "/api/v1/authentication", json=credentials
+        )
+
+        # ASSERT
+        assert response.status_code == 401
+        assert response.json() == {"detail": "User not verified"}
+
     def test_authenticate_user__invalid_data__expect_error(  # noqa: E501
         self,
     ) -> None:
