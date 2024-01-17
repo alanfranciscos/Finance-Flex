@@ -1,0 +1,40 @@
+version: '2'
+services:
+  mongo-db:
+    image: mongo:6.0
+    container_name: finance-flex-api-mongo
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=mongoadmin
+      - MONGO_INITDB_ROOT_PASSWORD=secret
+
+  app-test:
+    build:
+      context: ./
+      dockerfile: test.Dockerfile
+    container_name: finance-flex-api-tests
+    ports:
+      - "8000:8000"
+    environment:
+      - MONGO_DATABASE=FinanceFlexTeste
+      - MONGO_URI=mongodb://mongoadmin:secret@finance-flex-api-mongo:27017
+      - JWT_ALGORITHM=HS256
+      - JWT_SECRET_KEY=SECRETO
+      - JWT_ACCESS_TOKEN_EXPIRE_MINUTES=30
+      - EMAIL_HOST=smtp-mail.email.com
+      - EMAIL_USER=email@email.com.br
+      - EMAIL_PASSWORD=password
+      - EMAIL_PORT=321
+    command:
+      [
+        "./infra/wait-for-it.sh",
+        "finance-flex-api-mongo:27017",
+        "--",
+        "pytest",
+        "-vv",
+        "--cov-config=.coveragerc",
+        "--cov=."
+      ]
+    depends_on:
+      - mongo-db

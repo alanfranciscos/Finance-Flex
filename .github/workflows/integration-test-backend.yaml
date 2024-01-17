@@ -1,0 +1,22 @@
+name: Integration Tests and Coverage - Backend
+
+on:
+  pull_request:
+    branches:
+      - "release-**"
+      - development
+      - main
+jobs:
+  integration-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - run: docker compose -f backend/docker-compose-tests.yaml pull
+      - uses: satackey/action-docker-layer-caching@v0.0.11
+        continue-on-error: true
+      - name: Execute tests
+        working-directory: ./
+        run: make backend-integration-tests

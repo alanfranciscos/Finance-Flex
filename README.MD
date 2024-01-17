@@ -39,6 +39,7 @@ O FinanceFlex é um aplicativo de planejamento financeiro desenvolvido para prop
 - Crie uma virtual env
 
 ```bash
+cd backend
 python3.11 -m venv venv
 ```
 
@@ -51,7 +52,7 @@ pip install -r requirements.txt
 - Inicie o backend: ``
 
 ```bash
-uvicorn main:app --reload
+uvicorn app.main:app --reload
 ```
 
 - [Acesse o swagger no seu navegador para verificar a documentacao da api](http://localhost:8000/docs)
