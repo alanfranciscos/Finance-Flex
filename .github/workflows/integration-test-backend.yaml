@@ -19,4 +19,4 @@ jobs:
         continue-on-error: true
       - name: Execute tests
         working-directory: ./
-        run: make integration-tests
+        run: make backend-integration-tests
