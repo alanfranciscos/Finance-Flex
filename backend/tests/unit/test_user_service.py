@@ -3,8 +3,8 @@ from unittest.mock import Mock
 import pytest
 from fastapi import HTTPException
 
-from backend.app.schemas.user import UserInput
-from backend.app.services.user import UserService
+from app.schemas.user import UserInput
+from app.services.user import UserService
 
 
 class TestUser:

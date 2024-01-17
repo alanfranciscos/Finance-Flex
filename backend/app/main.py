@@ -3,9 +3,9 @@ from typing import Dict
 from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
 
-from backend.app.config.logs import logConfiguration
-from backend.app.config.settings import get_settings
-from backend.app.routes import api
+from app.config.logs import logConfiguration
+from app.config.settings import get_settings
+from app.routes import api
 
 app = FastAPI()
 settings = get_settings()

@@ -1,14 +1,14 @@
 from fastapi import APIRouter, Depends
 
-from backend.app.dependencies.depends import get_service
-from backend.app.schemas.authentication import AuthenticationInput
-from backend.app.schemas.passwords import PasswordStagingValidate
-from backend.app.schemas.user import (
+from app.dependencies.depends import get_service
+from app.schemas.authentication import AuthenticationInput
+from app.schemas.passwords import PasswordStagingValidate
+from app.schemas.user import (
     UserInformations,
     UserInput,
     UserValidationInput,
 )
-from backend.app.services.user import UserService
+from app.services.user import UserService
 
 router = APIRouter()
 

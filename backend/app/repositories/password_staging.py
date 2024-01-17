@@ -4,13 +4,13 @@ from typing import Dict
 from bson import errors
 from pymongo.database import Database
 
-from backend.app.repositories.base import BaseRepository
-from backend.app.schemas.passwords import (
+from app.repositories.base import BaseRepository
+from app.schemas.passwords import (
     PasswordStaging,
     PasswordStagingValidate,
 )
-from backend.app.utils import api_errors
-from backend.app.utils.datetime import set_default_timezone
+from app.utils import api_errors
+from app.utils.datetime import set_default_timezone
 
 
 class PasswordStagingRepository(BaseRepository):

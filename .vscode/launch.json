@@ -7,14 +7,15 @@
         {
             "name": "Python: FastAPI",
             "type": "python",
+            "cwd": "backend",
             "request": "launch",
             "module": "uvicorn",
             "args": [
-                "backend.app.main:app",
+                "app.main:app",
                 "--reload"
             ],
             "jinja": true,
             "justMyCode": true
         }
-    ]
+    ],
 }

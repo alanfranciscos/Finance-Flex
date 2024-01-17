@@ -1,22 +1,22 @@
 from datetime import datetime, timedelta
 from unittest.mock import Mock, patch
 
-from backend.app.schemas.passwords import (
+from app.schemas.passwords import (
     PasswordHeader,
     PasswordList,
     PasswordStaging,
 )
-from backend.app.schemas.user import User
+from app.schemas.user import User
 
-# from backend.app.schemas.user import Create_user
-from backend.tests.integration.base import BaseTest
-from backend.tests.integration.helper import generate_jwt_token
+# from app.schemas.user import Create_user
+from tests.integration.base import BaseTest
+from tests.integration.helper import generate_jwt_token
 
 
 class TestUser(BaseTest):
     """Test class to test event service."""
 
-    @patch("backend.app.events.email.EmailEvent.send_email")
+    @patch("app.events.email.EmailEvent.send_email")
     def test_create_user__send_valid_data__expect_created_user_in_database(  # noqa: E501
         self, email_send_mock: Mock
     ) -> None:
@@ -48,7 +48,7 @@ class TestUser(BaseTest):
         assert response.status_code == 201
         assert response.json() == expected_user
 
-    @patch("backend.app.events.email.EmailEvent.send_email")
+    @patch("app.events.email.EmailEvent.send_email")
     def test_create_user__send_invalid_data__expect_dont_create_user_in_database(  # noqa: E501
         self, email_send_mock: Mock
     ) -> None:
@@ -79,7 +79,7 @@ class TestUser(BaseTest):
         # ASSERT
         assert response.status_code == 422
 
-    @patch("backend.app.events.email.EmailEvent.send_email")
+    @patch("app.events.email.EmailEvent.send_email")
     def test_forgot_password__send_existing_email_and_after_time__expect_code_sended(  # noqa: E501
         self, email_send_mock: Mock
     ):
@@ -129,7 +129,7 @@ class TestUser(BaseTest):
             and content["valid_until"] < time_more
         )
 
-    @patch("backend.app.events.email.EmailEvent.send_email")
+    @patch("app.events.email.EmailEvent.send_email")
     def test_forgot_password__send_existing_email_and_before_time__expect_error(  # noqa: E501
         self, email_send_mock: Mock
     ):
@@ -183,7 +183,7 @@ class TestUser(BaseTest):
             response.json()["detail"]["detail"] == "Password already requested"
         )
 
-    @patch("backend.app.events.email.EmailEvent.send_email")
+    @patch("app.events.email.EmailEvent.send_email")
     def test_forgot_password__send_password_already_exist_in_database__expect_error(  # noqa: E501
         self, email_send_mock: Mock
     ):

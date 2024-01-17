@@ -52,7 +52,7 @@ pip install -r requirements.txt
 - Inicie o backend: ``
 
 ```bash
-uvicorn backend.app.main:app --reload
+uvicorn app.main:app --reload
 ```
 
 - [Acesse o swagger no seu navegador para verificar a documentacao da api](http://localhost:8000/docs)

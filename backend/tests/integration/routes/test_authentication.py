@@ -1,10 +1,10 @@
 from datetime import datetime
 from time import sleep
 
-from backend.app.schemas.user import User
+from app.schemas.user import User
 
-# from backend.app.schemas.user import Create_user
-from backend.tests.integration.base import BaseTest
+# from app.schemas.user import Create_user
+from tests.integration.base import BaseTest
 
 
 class TestAuthentication(BaseTest):

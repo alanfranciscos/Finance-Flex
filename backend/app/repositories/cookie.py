@@ -5,9 +5,9 @@ from bson import errors
 from fastapi.exceptions import ValidationException
 from pymongo.database import Database
 
-from backend.app.repositories.base import BaseRepository
-from backend.app.schemas.cookies import Cookie, CookieResponse
-from backend.app.utils.datetime import set_default_timezone
+from app.repositories.base import BaseRepository
+from app.schemas.cookies import Cookie, CookieResponse
+from app.utils.datetime import set_default_timezone
 
 
 class CookieRepository(BaseRepository):

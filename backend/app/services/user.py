@@ -5,22 +5,22 @@ from datetime import datetime, timedelta
 import bcrypt
 from passlib.context import CryptContext
 
-from backend.app.events.email import EmailEvent
-from backend.app.repositories.password_staging import PasswordStagingRepository
-from backend.app.repositories.passwords import PasswordsRepository
-from backend.app.repositories.users import UserRepository
-from backend.app.schemas.passwords import (
+from app.events.email import EmailEvent
+from app.repositories.password_staging import PasswordStagingRepository
+from app.repositories.passwords import PasswordsRepository
+from app.repositories.users import UserRepository
+from app.schemas.passwords import (
     PasswordHeader,
     PasswordStaging,
     PasswordStagingValidate,
 )
-from backend.app.schemas.user import (
+from app.schemas.user import (
     User,
     UserInformations,
     UserInput,
     UserVerification,
 )
-from backend.app.utils import api_errors
+from app.utils import api_errors
 
 
 class UserService:

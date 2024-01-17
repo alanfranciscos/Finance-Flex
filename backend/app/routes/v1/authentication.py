@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 
-from backend.app.dependencies.depends import authenticated_user, get_service
-from backend.app.schemas.authentication import AuthenticationInput, Token
-from backend.app.services.authentication import AuthenticationService
+from app.dependencies.depends import authenticated_user, get_service
+from app.schemas.authentication import AuthenticationInput, Token
+from app.services.authentication import AuthenticationService
 
 router = APIRouter()
 

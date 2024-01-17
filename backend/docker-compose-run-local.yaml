@@ -1,0 +1,10 @@
+version: '2'
+services:
+  mongo-db:
+    image: mongo:6.0
+    container_name: finance-flex-api-mongo
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=mongoadmin
+      - MONGO_INITDB_ROOT_PASSWORD=secret

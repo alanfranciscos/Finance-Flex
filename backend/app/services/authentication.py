@@ -4,11 +4,11 @@ import bcrypt
 from fastapi import HTTPException
 from jose import JWTError, jwt
 
-from backend.app.config.settings import get_settings
-from backend.app.repositories.cookie import CookieRepository
-from backend.app.schemas.cookies import Cookie
-from backend.app.services.user import UserService
-from backend.app.utils import api_errors
+from app.config.settings import get_settings
+from app.repositories.cookie import CookieRepository
+from app.schemas.cookies import Cookie
+from app.services.user import UserService
+from app.utils import api_errors
 
 _settings = get_settings()
 

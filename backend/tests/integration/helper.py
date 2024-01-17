@@ -6,7 +6,7 @@ from typing import List
 from dotenv.main import load_dotenv
 from jose import jwt
 
-import backend.app.config.settings as settings
+import app.config.settings as settings
 
 
 def set_envs_for_tests() -> None:

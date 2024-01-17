@@ -2,7 +2,7 @@ import os
 
 from dotenv import load_dotenv
 
-from backend.app.config.settings import Settings
+from app.config.settings import Settings
 
 
 def get_settings() -> Settings:

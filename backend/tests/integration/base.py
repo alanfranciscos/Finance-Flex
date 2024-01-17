@@ -4,15 +4,15 @@ from typing import List
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from backend.tests.integration.create_db_doc import CreateDbDoc
-from backend.tests.integration.database import (
+from tests.integration.create_db_doc import CreateDbDoc
+from tests.integration.database import (
     get_database as get_database_tests,
 )
-from backend.tests.integration.helper import (
+from tests.integration.helper import (
     generate_jwt_token,
     set_envs_for_tests,
 )
-from backend.tests.integration.settings import (
+from tests.integration.settings import (
     get_settings as get_settings_tests,
 )
 
@@ -33,9 +33,9 @@ class BaseTest:
         cls.settings = get_settings_tests()
 
         def _get_app() -> FastAPI:
-            from backend.app.config.settings import get_settings
-            from backend.app.dependencies.database import get_database
-            from backend.app.main import app
+            from app.config.settings import get_settings
+            from app.dependencies.database import get_database
+            from app.main import app
 
             app.dependency_overrides[get_settings] = get_settings_tests
             app.dependency_overrides[get_database] = get_database_tests

@@ -1,8 +1,8 @@
 from passlib.context import CryptContext
 from pymongo.database import Database
 
-from backend.app.schemas.passwords import PasswordList, PasswordStaging
-from backend.app.schemas.user import User
+from app.schemas.passwords import PasswordList, PasswordStaging
+from app.schemas.user import User
 
 
 # TODO -> Create a class for each collection

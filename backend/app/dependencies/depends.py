@@ -5,15 +5,15 @@ from fastapi import Depends, HTTPException, Request
 from jose import JWTError, jwt
 from pymongo.database import Database
 
-from backend.app.config.settings import get_settings
-from backend.app.dependencies.database import get_database
-from backend.app.repositories.base import BaseRepository
-from backend.app.repositories.cookie import CookieRepository
-from backend.app.repositories.password_staging import PasswordStagingRepository
-from backend.app.repositories.passwords import PasswordsRepository
-from backend.app.repositories.users import UserRepository
-from backend.app.services.authentication import AuthenticationService
-from backend.app.services.user import UserService
+from app.config.settings import get_settings
+from app.dependencies.database import get_database
+from app.repositories.base import BaseRepository
+from app.repositories.cookie import CookieRepository
+from app.repositories.password_staging import PasswordStagingRepository
+from app.repositories.passwords import PasswordsRepository
+from app.repositories.users import UserRepository
+from app.services.authentication import AuthenticationService
+from app.services.user import UserService
 
 
 def get_repository(

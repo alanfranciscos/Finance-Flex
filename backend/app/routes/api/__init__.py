@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter
 
-from backend.app.routes.v1 import authentication, user
+from app.routes.v1 import authentication, user
 
 endpoint_router = APIRouter()
 
