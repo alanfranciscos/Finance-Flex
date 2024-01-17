@@ -1,4 +1,4 @@
-name: Integration Tests and Coverage
+name: Integration Tests and Coverage - Backend
 
 on:
   pull_request:
@@ -13,7 +13,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - run: docker compose -f docker-compose-tests.yaml pull
+      - run: docker compose -f backend/docker-compose-tests.yaml pull
       - uses: satackey/action-docker-layer-caching@v0.0.11
         continue-on-error: true
       - name: Execute tests
