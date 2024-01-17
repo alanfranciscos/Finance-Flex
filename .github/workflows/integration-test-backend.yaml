@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - "release-**"
+      - development
       - main
 jobs:
   integration-test:
