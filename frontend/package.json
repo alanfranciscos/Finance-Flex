@@ -1,24 +1,40 @@
 {
-  "name": "finance-flex",
+  "name": "frontend",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint src --ext .ts,.tsx --max-warnings 0",
+    "lint:fix": "npm run lint -- --fix"
   },
   "dependencies": {
+    "next": "14.2.3",
     "react": "^18",
     "react-dom": "^18",
-    "next": "14.0.4"
+    "styled-components": "^6.1.9"
   },
   "devDependencies": {
-    "typescript": "^5",
+    "@eslint/js": "^9.1.1",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
-    "eslint": "^8",
-    "eslint-config-next": "14.0.4"
+    "@typescript-eslint/eslint-plugin": "^5.56.0",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "14.2.3",
+    "eslint-config-prettier": "^8.8.0",
+    "eslint-config-standard": "^17.1.0",
+    "eslint-plugin-import": "^2.27.5",
+    "eslint-plugin-n": "^15.6.1",
+    "eslint-plugin-prettier": "^4.2.1",
+    "eslint-plugin-promise": "^6.1.1",
+    "eslint-plugin-react": "^7.34.1",
+    "eslint-plugin-simple-import-sort": "^12.1.0",
+    "eslint-plugin-unused-imports": "^2.0.0",
+    "globals": "^15.1.0",
+    "prettier": "^2.8.7",
+    "typescript": "^5",
+    "typescript-eslint": "^7.8.0"
   }
 }

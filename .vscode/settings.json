@@ -1,7 +1,72 @@
 {
-    "python.testing.pytestArgs": [
-        "./backend/tests"
+  "python.testing.pytestArgs": ["./backend/tests"],
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestEnabled": true,
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "editor.formatOnSave": true,
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[html]": {
+    "editor.defaultFormatter": "vscode.html-language-features"
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "security.workspace.trust.untrustedFiles": "open",
+  "workbench.iconTheme": "material-icon-theme",
+  "workbench.colorTheme": "Omni",
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "javascript.updateImportsOnFileMove.enabled": "always",
+  "githubPullRequests.fileListLayout": "tree",
+  "terminal.integrated.tabs.enabled": true,
+  "jest.autoRun": {
+    "watch": false
+  },
+  "jest.runMode": "on-demand",
+  "jest.jestCommandLine": "npm run test --",
+  "githubPullRequests.pullBranch": "never",
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter"
+  },
+  "python.createEnvironment.trigger": "off",
+  "black-formatter.args": ["--line-length", "79"],
+  "isort.args": ["--profile", "black"],
+  "flake8.args": [
+    "--max-line-length=79",
+    "--ignore=ANN101,ANN102,D100,D107,W503"
+  ],
+  "emeraldwalk.runonsave": {
+    "commands": [
+      {
+        "match": "\\.py$",
+        "cmd": "autoflake --remove-all-unused-imports --remove-unused-variables --ignore-init-module-imports --in-place ${file}"
+      }
     ],
-    "python.testing.unittestEnabled": false,
-    "python.testing.pytestEnabled": true
+    "editor.rulers": [79],
+    "redhat.telemetry.enabled": true,
+    "cmake.configureOnOpen": true,
+    "workbench.colorTheme": "GitHub Dark",
+    "diffEditor.ignoreTrimWhitespace": false,
+    "window.zoomLevel": -1,
+    "go.gopath": "/Users/kresna/.gvm/pkgsets/go1.19.1/global",
+    "go.goroot": "/Users/kresna/.gvm/gos/go1.19.1",
+    "github.copilot.enable": {
+      "*": true,
+      "plaintext": false,
+      "markdown": false,
+      "scminput": false
+    }
+  }
 }
